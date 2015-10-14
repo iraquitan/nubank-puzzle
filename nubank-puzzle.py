@@ -13,7 +13,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from sklearn.cross_validation import KFold
+from sklearn.cross_validation import KFold, train_test_split
 from sklearn.feature_extraction import DictVectorizer, FeatureHasher
 from sklearn.feature_selection import SelectKBest, f_regression
 from sklearn.grid_search import GridSearchCV
@@ -51,15 +51,26 @@ elif categorical_type == 'onehotencoder':
 
 
 np_data = np.array(num_train)
-ids = np_data[:, -2]
-# x_tr = np_data[:, :-2]
-x_tr = cat_data
+ids = np.array(np_data[:, -2], dtype=np.int)
+x_tr = np_data[:, :-2]
+x_tr_cat = cat_data
 y_tr = np_data[:, -1]
 
-# TODO get random subsample
+x_tr = np.hstack((np.matrix(ids).transpose(), x_tr))
+x_tr_cat = np.hstack((np.matrix(ids).transpose(), x_tr_cat))
+y_tr = np.vstack((ids, y_tr)).transpose()
+
+# Divide into a train and test set for better evaluation
+x_train, x_test, y_train, y_test = train_test_split(x_tr, y_tr, test_size=0.33, random_state=42)
+
+# Sampling
 subsample_rate = 8
-x_tr = x_tr[::subsample_rate, :]
-y_tr = y_tr[::subsample_rate]
+sample_ids = np.random.choice(x_train.shape[0], x_train.shape[0]/subsample_rate, replace=False)
+x_train = x_train[sample_ids, 1::]  # remove ids column
+y_train = y_train[sample_ids, 1::]  # remove ids column
+# x_tr = x_tr[::subsample_rate, :]
+# y_tr = y_tr[::subsample_rate]
+tt = GridSearchCV()
 
 # Training step
 r2scores = []
