@@ -9,16 +9,20 @@
  * Time: 17:07
  * To change this template use File | Settings | File Templates.
 """
-from blaze.expr.datetime import date
+
 import numpy as np
 import pandas as pd
 from datetime import datetime
 from sklearn.cross_validation import KFold
 from sklearn.feature_extraction import DictVectorizer, FeatureHasher
+from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.grid_search import GridSearchCV
+from sklearn.linear_model import Lasso, RandomizedLasso
 from sklearn.metrics import r2_score
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
 from sklearn.dummy import DummyRegressor
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler
 
 train = pd.read_csv('input/train.csv')
 test = pd.read_csv('input/test.csv')
@@ -53,7 +57,7 @@ x_tr = cat_data
 y_tr = np_data[:, -1]
 
 # TODO get random subsample
-subsample_rate = 2
+subsample_rate = 8
 x_tr = x_tr[::subsample_rate, :]
 y_tr = y_tr[::subsample_rate]
 
@@ -94,3 +98,21 @@ print('Dummy R2 scores: {}\nDummy R2 mean score: {}'.format(dummy_r2scores, np.m
 
 # print(train.shape)
 # print(test.shape)
+
+# Using Pipeline
+# fsel_estimators = [('rand_lasso', RandomizedLasso(n_jobs=-1)), ('k_best', SelectKBest(f_regression)),
+#                    ('extra_r_trees', ExtraTreesRegressor(n_jobs=-1))]
+# combined_fsel = FeatureUnion(fsel_estimators, n_jobs=-1,
+#                              transformer_weights={'rand_lasso'})
+# pipeline = Pipeline([
+#     ('standardize', StandardScaler()),
+#     ('feature_selection', combined_fsel),
+#     ('regression', RandomForestRegressor())
+#     ])
+#
+# param_grid = dict(feature_selection__rand_lasso__alpha=['aic', 'bic'],
+#                   feature_selection__k_best__k=[10, 20, 30, 50, 70, 80],
+#                   feature_selection__extra_r_trees__n_estimators=[10, 20, 30, 50, 70, 80]
+#                   )
+#
+# grid_search = GridSearchCV(pipeline, param_grid=param_grid, verbose=10, n_jobs=-1, cv=n_fs, scoring=r2_score)
