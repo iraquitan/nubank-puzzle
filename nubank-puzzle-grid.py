@@ -65,8 +65,9 @@ x_train, x_test, y_train, y_test = train_test_split(x_tr, y_tr, test_size=0.33, 
 subsample_rate = 8
 sample_ids = np.random.choice(x_train.shape[0], x_train.shape[0]/subsample_rate, replace=False)
 x_train = x_train[sample_ids, 1::]  # remove ids column
-y_train = y_train[sample_ids, 1::]  # remove ids column
-
+y_train = y_train[sample_ids, 1::].flatten()  # remove ids column
+x_test = x_test[:, 1::]  # remove ids column
+y_test = y_test[:, 1::].flatten()  # remove ids column
 
 # Set the parameters by cross-validation
 tuned_parameters = [{'regression__n_estimators': [10, 30, 50, 70, 90],
@@ -83,12 +84,11 @@ tuned_parameters = [{'regression__n_estimators': [10, 30, 50, 70, 90],
                      'regression__warm_start': [False, True],
                      'feat_sel__k':[10, 20, 30, 50, 70, 80]},  # GradientBoostingRegressor
                     {'regression__n_estimators': [50, 80, 100],
-                     'regression__base_estimator': [DecisionTreeRegressor(), SVR()],
+                     'regression__base_estimator': [DecisionTreeRegressor(), GradientBoostingRegressor(), SVR()],
                      'regression__loss': ['linear', 'square', 'exponential'],
-                     'regression__warm_start': [False, True],
                      'feat_sel__k':[10, 20, 30, 50, 70, 80]},  # AdaBoostRegressor
                     {'regression__kernel': ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],
-                     'regression__C': [1, 10, 100, 1000],
+                     'regression__C': [1, 10, 100],
                      'feat_sel__k':[10, 20, 30, 50, 70, 80]},  # SVR
                     ]
 
